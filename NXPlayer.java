@@ -63,7 +63,7 @@ public class NXPlayer extends OpMode{
         for (int x = 0; x < a.length; x++) {
             try {
                 teleconnect.gamepad1.fromByteArray(a[x]);
-                sleep(b[x]);
+                sleep(b[x + 1]);
             }
             catch (RobotCoreException e) {
                 telemetry.addLine("Gamepad library is in an invalid state. There's nothing else to be done.");
