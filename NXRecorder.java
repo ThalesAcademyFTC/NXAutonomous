@@ -60,6 +60,7 @@ public class NXRecorder extends OpMode implements Gamepad.GamepadCallback {
         startTime = System.currentTimeMillis();
     }
     public void stop() {
+        historian.appendTime(0.0);
         try {
             byte[] a = serializer.serialize(historian);
             try {
