@@ -18,16 +18,27 @@ import java.io.IOException;
  *
  * NXRecorder is built to handle input from gamepad1 only. A future version is planned to handle both
  * gamepad1 and gamepad2.
+ *
+ * Fair warning: gamepad2 will be usable while running, but input from it will not be recorded.
+ * If you absolutely need gamepad2, you will need to find a different way to go about doing this
+ * until version 2 is available
  */
 
 public class NXRecorder extends OpMode implements Gamepad.GamepadCallback {
 
     public ClaspTeleop teleConnect;
-    public Thread teleServer; //Teleop must be active during recording to actuate control input
     private NXStateHistory historian = new NXStateHistory();
     long startTime = System.currentTimeMillis();
     private NXSerializer serializer = new NXSerializer();
-    public void loop() {} //We don't need a loop
+    //private byte[] lastKnownState; Uncomment if recorder fails to catch every state change
+    public void loop() {
+        /* Uncomment if recorder fails to catch every state change
+        try {
+            if (gamepad1.toByteArray() != lastKnownState) gamepadChanged(gamepad1);
+        } catch(RobotCoreException e) {} // This is actually completely superfluous. Thanks, Java.
+        */
+        teleConnect.loop();
+    }
     public void init() {
         try {
             gamepad1.copy(new Gamepad(this));
@@ -39,13 +50,7 @@ public class NXRecorder extends OpMode implements Gamepad.GamepadCallback {
         teleConnect.hardwareMap = hardwareMap;
         teleConnect.init();
         teleConnect.gamepad1 = gamepad1;
-        teleServer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                teleConnect.loop();
-            }
-        });
-        teleServer.start();
+        //try{lastKnownState = gamepad1.toByteArray();} catch(RobotCoreException e){} Uncomment if recorder fails to catch every state change
     }
     @Override
     public void gamepadChanged(Gamepad gamepad) { //Log every time the controller changes
@@ -60,7 +65,6 @@ public class NXRecorder extends OpMode implements Gamepad.GamepadCallback {
         startTime = System.currentTimeMillis();
     }
     public void stop() {
-        historian.appendTime(System.currentTimeMillis() - startTime);
         try {
             byte[] a = serializer.serialize(historian);
             try {
